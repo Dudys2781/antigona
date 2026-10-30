@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Escape room: Antigona</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f1e7;--card:#fffdf8;--ink:#2b2118;--mute:#6f6253;--acc:#9a3b26;--ok:#2e7d4f;--bad:#b3261e;--line:#dccfb8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1814;--card:#2a231d;--ink:#f1e8da;--mute:#b5a48d;--acc:#e08a6d;--ok:#6fcf97;--bad:#ff8a80;--line:#4a3f34}}
+:root[data-theme="dark"]{--bg:#1d1814;--card:#2a231d;--ink:#f1e8da;--mute:#b5a48d;--acc:#e08a6d;--ok:#6fcf97;--bad:#ff8a80;--line:#4a3f34}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 Georgia,"Times New Roman",serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.6rem;margin:.2em 0;color:var(--acc)}
+h2{font-size:1.25rem;margin:.2em 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+.story{color:var(--mute);font-style:italic}
+.code{display:flex;gap:10px;margin:10px 0}
+.d{width:52px;height:64px;border:2px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:bold;color:var(--acc)}
+.d.on{border-color:var(--ok);color:var(--ok)}
+.q{margin:14px 0}
+.q label{display:block;margin-bottom:4px}
+select,input[type=text],textarea{width:100%;font:inherit;padding:10px;border-radius:8px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.q.bad select,.q.bad input,.q.bad textarea{border-color:var(--bad)}
+.q.good select,.q.good input,.q.good textarea{border-color:var(--ok)}
+button{font:inherit;font-weight:bold;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:12px 22px;cursor:pointer;margin-top:8px}
+.msg{margin-top:10px;font-weight:bold}
+.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
+.big{font-size:1.9rem;letter-spacing:.2em;text-align:center;color:var(--ok);font-weight:bold}
+footer{font-size:.75rem;color:var(--mute);text-align:center;margin-top:28px}
+.t{color:var(--mute);font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Escape room: Antigona</h1>
+<div class="code" id="code"></div>
+<div id="app"></div>
+<footer>„Tento projekt sa realizuje vďaka podpore z Európskeho sociálneho fondu v rámci Operačného programu Ľudské zdroje.“</footer>
+</main>
+<script>
+const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+const AK=["A","K"], ABC=["A","B","C"];
+const T=[
+{n:"Tajomstvo postáv",h:"Kto je kto v Tébach?",
+ s:"V kráľovskom paláci sa stratili mená štyroch dôležitých postáv. Priraďte ku každej postave správnu charakteristiku.",
+ pre:"<p><b>A.</b> Kráľov syn a Antigonin snúbenec, ktorý sa snaží presvedčiť otca, aby zmenil svoje rozhodnutie.<br><b>B.</b> Vládca Téb, ktorý zakáže pochovať Polyneika.<br><b>C.</b> Dievčina, ktorá sa rozhodne pochovať svojho brata napriek zákazu.<br><b>D.</b> Antigonina sestra, ktorá sa spočiatku bojí postaviť proti kráľovmu príkazu.</p>",
+ q:[["Antigona","sel",["A","B","C","D"],"C"],["Kreón","sel",["A","B","C","D"],"B"],["Isména","sel",["A","B","C","D"],"D"],["Haimón","sel",["A","B","C","D"],"A"],
+ ["Kontrolná otázka: Ktorá postava predstavuje neústupnú štátnu moc?","txt",v=>/kreon/.test(norm(v))]]},
+{n:"Zákon alebo svedomie?",h:"Rozlúštite konflikt",
+ s:"Kreónov zákaz vyvolal konflikt. Dokážete rozpoznať, ktoré hodnoty zastávajú hlavné postavy? Ku každému výroku vyberte A (Antigona) alebo K (Kreón).",
+ q:[["Rodinná povinnosť a nepísané božské zákony sú dôležitejšie než kráľov zákaz.","sel",AK,"A"],
+ ["Panovník musí presadiť zákon a potrestať neposlušnosť.","sel",AK,"K"],
+ ["Človek má konať podľa svojho svedomia aj za cenu vlastného života.","sel",AK,"A"],
+ ["Porušenie kráľovho príkazu ohrozuje poriadok v štáte.","sel",AK,"K"],
+ ["Hlavný konflikt diela vzniká medzi … (prvý pojem)","txt",null,"c1"],
+ ["… a (druhý pojem)","txt",null,"c2"],
+ ["Antigona porušila zákaz preto, že chcela získať moc v Tébach.","sel",["PRAVDA","NEPRAVDA"],"NEPRAVDA"]]},
+{n:"Literárny detektív",h:"Odomknite literárny archív",
+ s:"Archív starovekých Téb je uzamknutý. Kľúčom sú základné literárne vedomosti o diele.",
+ q:[["Kto je autorom diela Antigona?","sel",["Euripides","Sofokles","Aristofanes"],"Sofokles"],
+ ["Do ktorého literárneho druhu dielo patrí?","sel",["Lyrika","Epika","Dráma"],"Dráma"],
+ ["Aký je literárny žáner diela?","sel",["Román","Komédia","Tragédia"],"Tragédia"],
+ ["Čo najlepšie vystihuje hlavnú myšlienku diela?","sel",["Každý človek má bezvýhradne poslúchať vládcu.","Pýcha a neústupnosť môžu viesť k tragickým následkom.","Bohatstvo je najvyššou hodnotou človeka."],"Pýcha a neústupnosť môžu viesť k tragickým následkom."],
+ ["Bonus: Ako sa nazýva postava, ktorá varuje Kreóna pred následkami jeho rozhodnutia?","txt",v=>/teire?sias|tejresias|teiresiás/.test(norm(v))||norm(v).startsWith("teires")]]},
+{n:"Posledná šanca zachrániť Téby",h:"Zmeňte osud",
+ s:"Kreón si začína uvedomovať následky svojho rozhodnutia. Usporiadajte udalosti a vysvetlite príčinu tragédie. Očíslujte udalosti poradím 1 až 4.",
+ q:[["Antigona pochová svojho brata Polyneika.","sel",["1","2","3","4"],"2"],
+ ["Teiresias varuje Kreóna pred následkami jeho rozhodnutia.","sel",["1","2","3","4"],"4"],
+ ["Kreón zakáže pochovať Polyneika.","sel",["1","2","3","4"],"1"],
+ ["Kreón odsúdi Antigonu na smrť.","sel",["1","2","3","4"],"3"],
+ ["Prečo Kreón napokon svoje rozhodnutie ľutuje?","sel",["Bojí sa straty kráľovského trónu.","Uvedomí si, že jeho neústupnosť a ignorovanie varovaní vedú ku katastrofe.","Chce odovzdať vládu Haimónovi."],"Uvedomí si, že jeho neústupnosť a ignorovanie varovaní vedú ku katastrofe."],
+ ["Čo by sa podľa vás mohlo zmeniť, keby Kreón prijal Teiresiovu radu skôr? (1–2 vety)","area",v=>v.trim().length>=15]]}
+];
+const DIG=["4","2","7","3"];
+let st=0,got=[];
+const $=id=>document.getElementById(id);
+function drawCode(){$("code").innerHTML=DIG.map((d,i)=>`<div class="d ${got[i]?'on':''}">${got[i]?d:"?"}</div>`).join("")}
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function intro(){
+ $("app").innerHTML=`<div class="card"><p class="story">V Tébach hrozí katastrofa. Antigona porušila Kreónov zákaz a pochovala svojho brata Polyneika. Veštec Teiresias varuje, že rozhodnutie kráľa prinesie nešťastie. Záverečné posolstvo je ukryté za štyrmi úlohami. Spolupracujte, argumentujte a získajte štvormiestny kód skôr, než vyprší čas!</p><p class="t">4 úlohy · približne 4 minúty na každú</p><button onclick="task()">Začať hru</button></div>`;
+}
+function task(){
+ const t=T[st];
+ let h=`<div class="card"><div class="t">Úloha ${st+1} z 4 · ${t.n}</div><h2>${t.h}</h2><p class="story">${t.s}</p>${t.pre||""}`;
+ t.q.forEach((q,i)=>{
+  h+=`<div class="q" id="q${i}"><label for="i${i}">${esc(q[0])}</label>`;
+  if(q[1]=="sel")h+=`<select id="i${i}"><option value="">– vyber –</option>${q[2].map(o=>`<option>${esc(o)}</option>`).join("")}</select>`;
+  else if(q[1]=="area")h+=`<textarea id="i${i}" rows="3"></textarea>`;
+  else h+=`<input type="text" id="i${i}" autocomplete="off">`;
+  h+=`</div>`;
+ });
+ h+=`<button onclick="check()">Skontrolovať</button><div class="msg" id="msg"></div></div>`;
+ $("app").innerHTML=h;
+}
+function check(){
+ const t=T[st];let ok=true;const v=t.q.map((_,i)=>$("i"+i).value);
+ const res=t.q.map((q,i)=>{
+  if(q[3]=="c1"||q[3]=="c2")return null;
+  if(q[1]=="sel")return v[i]==q[3];
+  return q[2](v[i]);
+ });
+ if(st==1){ // konflikt: dva pojmy v ľubovoľnom poradí
+  const A=/zakon|stat|moc|autorit|panovn|kreon|poriadok/,B=/svedomi|bozsk|rodin|antigon|moral|povinnost/;
+  const a=norm(v[4]),b=norm(v[5]);
+  const c=(A.test(a)&&B.test(b))||(B.test(a)&&A.test(b));
+  res[4]=c;res[5]=c;
+ }
+ res.forEach((r,i)=>{const e=$("q"+i);e.className="q "+(r?"good":"bad");if(!r)ok=false});
+ const m=$("msg");
+ if(!ok){m.className="msg bad";m.textContent="Niečo ešte nesedí. Opravte červené odpovede a skúste znova.";return}
+ got[st]=true;drawCode();
+ const last=st==3;
+ m.className="msg ok";
+ m.innerHTML=`Správne! Získali ste číslicu <b>${DIG[st]}</b>.<br><button onclick="${last?'fin()':'next()'}">${last?"Odomknúť záverečnú obálku":"Ďalšia obálka"}</button>`;
+}
+function next(){st++;task();window.scrollTo(0,0)}
+function fin(){
+ $("app").innerHTML=`<div class="card"><h2>Záverečná obálka – Tajné posolstvo</h2><div class="big">4 – 2 – 7 – 3</div><p><b>Gratulujeme! Odomkli ste tajomstvo thébskeho paláca.</b></p><p>Pýcha a neústupnosť môžu viesť ku katastrofe. Múdrosť spočíva v schopnosti počúvať, uznať vlastnú chybu a konať zodpovedne.</p><p class="story">Záverečná otázka na diskusiu: Kto podľa vás nesie najväčšiu zodpovednosť za tragický koniec – Antigona alebo Kreón? Svoj názor zdôvodnite.</p><button onclick="st=0;got=[];drawCode();intro()">Hrať znova</button></div>`;
+ window.scrollTo(0,0);
+}
+drawCode();intro();
+</script>
+</body>
+</html>
